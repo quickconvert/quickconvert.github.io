@@ -157,9 +157,10 @@
     let playing = 0
 
     let servers = [
-        "fellinluv",
-        "f890esdyah79fgsed90fs",
+        "i0fa9780fas0f",
+        "fajdfhs908fhsd",
     ]
+    //https://glitch.com/edit/#!/remix/i0fa9780fas0f
     function getRandomServer() {
         const randomIndex = Math.floor(Math.random() * servers.length);
         return servers[randomIndex];
@@ -232,7 +233,7 @@
             playlist.splice(songid, 1);
             localStorage.setItem("playlist", JSON.stringify(playlist));
             alert("removed from palylisy 😂😁")
-            jmp(playing)
+            renderplaylist()
         }
     }
 
@@ -278,12 +279,8 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const r = await fetch(`https://corsproxy.io/?https://www.youtube.com/results?search_query=${query}`)
-        const fetched = await r.text()
-        const fafa = fetched.split("var ytInitialData = ")[1]
-        const fafaf = fafa.split(";" + atob("PC9zY3JpcHQ+"))[0]
-        const sdafioj89 = JSON.parse(fafaf)
-        const vids = sdafioj89.contents.twoColumnSearchResultsRenderer.primaryContents.sectionListRenderer.contents[0].itemSectionRenderer.contents
+        const r = await fetch(`https://${getRandomServer()}.glitch.me/proxy?query=${query}`)
+        const vids = await r.json()
 
         document.getElementById("searchcontent").innerHTML = `<img src="3838.jpg" width="100px" height="100px">`
 
