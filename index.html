@@ -180,26 +180,28 @@
             <b id="songname">Loading...</b>
             <p id="rappername">Loading...</p>
         </div>
-
-
             <button onclick="previousSong()"><i class="material-icons">skip_previous</i></button>
             <audio id="audioPlayer" controls>
                 <source id="audioSource" src="" type="audio/mpeg">
             </audio>
             <button onclick="nextSong()"><i class="material-icons">skip_next</i></button>
 
-
     </div>
     <div id="loading" style="display: none;">
+        <p id="nmaefjeaf">-</p>
         <progress value="0.5" id="diddy"></progress>
         <p id="progt">0% 0/1000</p>
     </div>
 
 <script>
-    function loading(isloading, onnumber, maxnumber) {
+    let loadingsomething = false
+    function loading(isloading, onnumber, maxnumber, name) {
         if (!isloading) {
             document.getElementById("loading").style.display = "none"
+            loadingsomething= false
         } else {
+            loadingsomething = true
+            document.getElementById("nmaefjeaf").textContent = name
             if (onnumber) {
                 document.getElementById("loading").style.display = ""
                 const sigmagyat = `${((onnumber / maxnumber) * 100).toFixed(2)} % ${onnumber} / ${maxnumber}`
@@ -212,36 +214,54 @@
             }
 
         }
-        
     }
 
-    function fetchWithProgress(url, responsetype) {
+    let currentXhr = null;
+
+    function fetchWithProgress(url, responseType, loadedname) {
         return new Promise((resolve, reject) => {
+            if (currentXhr) {
+                currentXhr.abort();
+                loading(false);
+            }
+
             const xhr = new XMLHttpRequest();
-            loading(true)
-            
+            currentXhr = xhr; // Store reference to the current XHR object
+
+            loading(true, undefined, undefined, loadedname);
+
             xhr.open('GET', url, true);
-            xhr.responseType = responsetype;
+            xhr.responseType = responseType;
 
             xhr.onprogress = (event) => {
                 if (event.lengthComputable) {
-                    loading(true, event.loaded, event.total)
+                    loading(true, event.loaded, event.total, loadedname);
                 }
             };
 
-            xhr.onload = async () => {
+            xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
-                    loading(false)
+                    loading(false);
                     resolve(xhr.response);
                 } else {
                     reject(`Failed to fetch: ${xhr.status}`);
                 }
             };
 
-            xhr.onerror = () => reject('Network error');
+            xhr.onerror = () => {
+                loading(false);
+                reject('Network error');
+            };
+
+            xhr.onabort = () => {
+                loading(false);
+                reject('Request aborted');
+            };
+
             xhr.send();
         });
     }
+
 
     let servers = [
         "f890eashf08sh80fs",
@@ -314,15 +334,14 @@
         });
     }
 
-
-    async function downloadaudio(YoutubeID) {
+    async function downloadaudio(YoutubeID, name) {
         const cachedAudio = await getAudioFromDB(YoutubeID);
         
         if (cachedAudio) {
             const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
             return blobUrl;
         } else {
-            const arrayBuffer = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer");
+            const arrayBuffer = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer", name);
             const mp3Blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
             await storeAudioInDB(YoutubeID, mp3Blob);
             const blobUrl = URL.createObjectURL(mp3Blob);
@@ -381,7 +400,7 @@
             document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(song[1])}/hq720.jpg`;
 
             
-            const audiourl = await downloadaudio(atob(song[1]))
+            const audiourl = await downloadaudio(atob(song[1]), atob(song[0]))
             document.getElementById("audioSource").src = audiourl;
 
             audioElement.load();
@@ -440,7 +459,7 @@
     }
 
     async function jmp(songid) {
-        playing = songid;
+        playing = parseInt(songid);
         if (playing >= playlist.length) {
             playing = 0;
         }
@@ -486,7 +505,7 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const vids = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/search?query=${query}`, "json")
+        const vids = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
         console.log(vids)
         document.getElementById("searchcontent").innerHTML = ``
 
