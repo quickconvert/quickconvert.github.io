@@ -206,7 +206,7 @@
             document.getElementById("nmaefjeaf").textContent = name
             if (onnumber) {
                 document.getElementById("loading").style.display = ""
-                const sigmagyat = `${((onnumber / maxnumber) * 100).toFixed(2)} % ${onnumber} / ${maxnumber}`
+                const sigmagyat = `${((onnumber / maxnumber) * 100).toFixed(2)}%`
                 document.getElementById("progt").textContent = sigmagyat
                 document.getElementById("diddy").value = (onnumber / maxnumber).toString()
             } else {
@@ -343,7 +343,7 @@
             const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
             return blobUrl;
         } else {
-            const arrayBuffer = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer", name);
+            const arrayBuffer = await fetchWithProgress(`https://corsproxy.io/?https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer", name);
             const mp3Blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
             await storeAudioInDB(YoutubeID, mp3Blob);
             const blobUrl = URL.createObjectURL(mp3Blob);
