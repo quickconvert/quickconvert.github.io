@@ -507,7 +507,7 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const vids = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
+        const vids = await fetchWithProgress(`https://corsproxy.io/?https://${getRandomServer()}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
         console.log(vids)
         document.getElementById("searchcontent").innerHTML = ``
 
