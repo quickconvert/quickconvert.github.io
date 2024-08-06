@@ -1,40 +1,22 @@
 <head>
     <link href="zesty.png" type="image/x-icon" rel="icon">
     <link rel="apple-touch-icon" href="zesty.png">
-    <title>spotify modded</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>Spotify Modded</title>
     <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('font.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'CustomFont', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #202020;
+            background-color: #121212;
             color: #ffffff;
-        }
-
-        #left {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        button {
-            background-color: rgb(255, 255, 255);
-            border: none;
-            color: rgb(0, 0, 0);
-            padding: 10px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #969696;
         }
 
         #home, #searchcontent {
@@ -45,21 +27,10 @@
             margin-top: 0;
         }
 
-        #home img, .songsearch img, .playlisti img {
-            border-radius: 5px;
-            box-shadow: 0 4px 8px #333;
-        }
-
-        #searchcontent img {
-            margin: 10px 0;
-        }
-
-        .playlisti, .songsearch {
-            background-color: #2e2e2e;
-            padding: 15px;
+        .playlisti {
+            height: 50px;
             border-radius: 5px;
             margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .playlisti h4, .songsearch h3 {
@@ -71,10 +42,9 @@
             bottom: 0;
             left: 0;
             width: 100%;
-            background-color: #333;
+            background-color: #000000;
             color: #fff;
             padding: 10px;
-            border-top: 1px solid #444;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -101,75 +71,283 @@
             flex-direction: column;
         }
 
-        #playlist .playlisti {
+        .playlisti {
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            border-radius: 5px;
+            padding: 10px;
         }
+
+        .playlisti:hover {
+            background-color: #1f1f1f;
+        }
+
+        .playbtn {
+            position: absolute;
+            width: 20px !important;
+            filter: invert(1) sepia(1) saturate(5) hue-rotate(180deg);
+            display: none;
+        }
+
+        .playlisti:hover .playbtn {
+            display: block;
+        }
+
 
         #playlist button {
             margin-left: auto;
         }
+
+        #loading {
+            align-items: center;
+            text-align: center;
+            position: fixed;
+            z-index: 1000;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            justify-content: center;
+        }
+
+        .crop-container {
+            width: 50px;
+            height: 50px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 5px;
+        }
+
+        .crop-container img {
+            width: 180%;
+            object-fit: cover;
+        }
+
+        .listi {
+            position: absolute;
+            left: 90px;
+        }
+
+        .listi h6 {
+            color: #b3b3b3;
+        }
+
+        .removefromplaylist {
+            background-color: rgba(0, 0, 0, 0);
+        }
+
+        button {
+            border: none;
+            background: none;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .material-icons {
+            color: #ffffff;
+        }
+
+        #leftcont button {
+            padding: 15px 20px;
+        }
+
+        #rappername {
+            color: #b3b3b3;
+        }
     </style>
 </head>
+    <div id="leftcont">
+        <button id="homeb"><i class="material-icons">home</i></button>
+        <button id="searchb"><i class="material-icons">search</i></button>
+    </div>
+    <div id="main">
+        <div id="home">
+            <div id="playlist">
+            </div>
+            <p>Spotfy Modded 2024</p>
+        </div>
+        <div id="searchcontent" style="display: none;">
+        </div>
+    </div>
 
-<div id="left">
-    <button id="homeb">Home (your playlist)</button>
-    <button id="searchb">Search For Music</button>
-    <div id="home">
-        <h1>yuo r on home</h1>
-        <img src="zesty.png" width="100px" height="100px">
-        <p>yuor playlist:</p>
-        <hr>
-        <div id="playlist">
+    <div id="player">
+        <div class="crop-container">
+            <img id="fgersi0sefdjhi" width="100px" src="">
+        </div>
+        <div>
+            <b id="songname">Loading...</b>
+            <p id="rappername">Loading...</p>
         </div>
 
-    </div>
-    <div id="searchcontent" style="display: none;">
-        
+
+            <button onclick="previousSong()"><i class="material-icons">skip_previous</i></button>
+            <audio id="audioPlayer" controls>
+                <source id="audioSource" src="" type="audio/mpeg">
+            </audio>
+            <button onclick="nextSong()"><i class="material-icons">skip_next</i></button>
+
 
     </div>
-    <p>spotify modded since 2024</p>
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-    <div id="player">
-        <img id="fgersi0sefdjhi" width="100px" src="">
-        <b id="songname">Loading...</b>
-        <p id="rappername">Loading...</p>
-        <audio id="audioPlayer" controls>
-            <source id="audioSource" src="" type="audio/mpeg">
-        </audio>
-        <button onclick="nextSong()">Next Song</button>
-        <button onclick="previousSong()">Prev Song</button>
+    <div id="loading" style="display: none;">
+        <progress value="0.5" id="diddy"></progress>
+        <p id="progt">0% 0/1000</p>
     </div>
-</div>
+
 <script>
-    function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    function loading(isloading, onnumber, maxnumber) {
+        if (!isloading) {
+            document.getElementById("loading").style.display = "none"
+        } else {
+            if (onnumber) {
+                document.getElementById("loading").style.display = ""
+                const sigmagyat = `${((onnumber / maxnumber) * 100).toFixed(2)} % ${onnumber} / ${maxnumber}`
+                document.getElementById("progt").textContent = sigmagyat
+                document.getElementById("diddy").value = (onnumber / maxnumber).toString()
+            } else {
+                document.getElementById("loading").style.display = ""
+                document.getElementById("progt").textContent = `Loading...`
+                document.getElementById("diddy").value = "0"
+            }
+
+        }
+        
     }
 
-    let playlist = localStorage.getItem("playlist")
-    if (!playlist) {
-        playlist = [["IjIwMjQiIHByb2QuIG9qaXZvbHRhLCBlYXJsb250aGViZWF0LCBhbmQgS2FueWUgV2VzdA==","WUczRWhXbEJhb0k=","aHR0cHM6Ly9pLnl0aW1nLmNvbS92aS9ZRzNFaFdsQmFvSS9ocTcyMC5qcGc/c3FwPS1vYXltd0VjQ09nQ0VNb0JTRlh5cTRxcEF3NElBUlVBQUloQ0dBRndBY0FCQmc9PSZycz1BT240Q0xEWm1xV0FzWVJ5dTFzS3JHRTEzcDd2ZmZiRnB3","MzozMA==","UGxheWJvaSBDYXJ0aQ=="]]
-    } else {
-        playlist = JSON.parse(playlist)
-    }
+    function fetchWithProgress(url, responsetype) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            loading(true)
+            
+            xhr.open('GET', url, true);
+            xhr.responseType = responsetype;
 
-    let playing = 0
+            xhr.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    loading(true, event.loaded, event.total)
+                }
+            };
+
+            xhr.onload = async () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    loading(false)
+                    resolve(xhr.response);
+                } else {
+                    reject(`Failed to fetch: ${xhr.status}`);
+                }
+            };
+
+            xhr.onerror = () => reject('Network error');
+            xhr.send();
+        });
+    }
 
     let servers = [
-        "i0fa9780fas0f",
-        "fajdfhs908fhsd",
+        "fyyyyyyyyyyyy",
     ]
     //https://glitch.com/edit/#!/remix/i0fa9780fas0f
     function getRandomServer() {
         const randomIndex = Math.floor(Math.random() * servers.length);
         return servers[randomIndex];
     }
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
-    function pingallservers() {
-        for (const i of servers) {
-            fetch(i + "/lol")
+    function openDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('audioCacheDB', 1);
+
+            request.onupgradeneeded = event => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('audioCache')) {
+                    db.createObjectStore('audioCache', { keyPath: 'id' });
+                }
+            };
+
+            request.onsuccess = event => {
+                resolve(event.target.result);
+            };
+
+            request.onerror = event => {
+                reject(event.target.error);
+            };
+        });
+    }
+
+    function storeAudioInDB(YoutubeID, mp3Blob) {
+        return openDatabase().then(db => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['audioCache'], 'readwrite');
+                const store = transaction.objectStore('audioCache');
+                const request = store.put({ id: YoutubeID, audioBlob: mp3Blob });
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = event => {
+                    reject(event.target.error);
+                };
+            });
+        });
+    }
+
+    function getAudioFromDB(YoutubeID) {
+        return openDatabase().then(db => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['audioCache'], 'readonly');
+                const store = transaction.objectStore('audioCache');
+                const request = store.get(YoutubeID);
+
+                request.onsuccess = event => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = event => {
+                    reject(event.target.error);
+                };
+            });
+        });
+    }
+
+
+    async function downloadaudio(YoutubeID) {
+        const cachedAudio = await getAudioFromDB(YoutubeID);
+        
+        if (cachedAudio) {
+            const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
+            return blobUrl;
+        } else {
+            const arrayBuffer = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer");
+            const mp3Blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
+            await storeAudioInDB(YoutubeID, mp3Blob);
+            const blobUrl = URL.createObjectURL(mp3Blob);
+            return blobUrl;
         }
+    }
+
+
+    let playlist = localStorage.getItem("playlist")
+    if (!playlist) {
+        playlist = []
+    } else {
+        playlist = JSON.parse(playlist)
+    }
+
+    let playing = 0
+
+
+    async function pingallservers() {
+        while (true) {
+            for (const i of servers) {
+            fetch("https://" + i + ".glitch.me/lol")
+            }
+            await delay(250000)
+        }
+        
+
     }
     pingallservers()
 
@@ -184,13 +362,24 @@
             playNextSong();
         });
 
-        function playNextSong() {
+        async function playNextSong() {
+            document.getElementById("audioSource").src = "";
+            audioElement.pause();
             const song = playlist[playing];
+            if (!song) {
+                document.getElementById("songname").textContent = "";
+                document.getElementById("rappername").textContent = "";
+                document.getElementById("fgersi0sefdjhi").src = "";
+                return
+            }
 
             document.getElementById("songname").textContent = atob(song[0]);
-            document.getElementById("rappername").textContent = atob(song[4]);
-            document.getElementById("fgersi0sefdjhi").src = atob(song[2]);
-            document.getElementById("audioSource").src = `https://${getRandomServer()}.glitch.me/?ytid=` + atob(song[1]);
+            document.getElementById("rappername").textContent = atob(song[3]);
+            document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(song[1])}/hq720.jpg`;
+
+            
+            const audiourl = await downloadaudio(atob(song[1]))
+            document.getElementById("audioSource").src = audiourl;
 
             audioElement.load();
             audioElement.play();
@@ -216,11 +405,11 @@
     }
 
 
-    async function addtoplaylist(songname, youtubeid, thumbnail, length, artist) {
+    async function addtoplaylist(songname, youtubeid, length, artist) {
         const isAlreadyInPlaylist = playlist.some(item => item[1] === youtubeid);
 
         if (!isAlreadyInPlaylist) {
-            playlist.push([songname, youtubeid, thumbnail, length, artist]);
+            playlist.push([songname, youtubeid, length, artist]);
             localStorage.setItem("playlist", JSON.stringify(playlist));
             alert(`Song ${atob(songname)} added to the playlist.`);
         } else {
@@ -228,13 +417,22 @@
         }
     }
 
+    async function preview(songname, youtubeid, length, artist) {
+        audioElement.pause();
+        document.getElementById("audioSource").src = "";
+        document.getElementById("songname").textContent = atob(songname);
+        document.getElementById("rappername").textContent = atob(artist);
+        document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(youtubeid)}/hq720.jpg`;
+        const audiourl = await downloadaudio(atob(youtubeid))
+        document.getElementById("audioSource").src = audiourl;
+        audioElement.load();
+        audioElement.play();
+    }
+
     async function delsong(songid) {
-        if (confirm(`r u sure u wanna remove such a great song ${atob(playlist[songid][0])}`)) {
-            playlist.splice(songid, 1);
-            localStorage.setItem("playlist", JSON.stringify(playlist));
-            alert("removed from palylisy 😂😁")
-            renderplaylist()
-        }
+        playlist.splice(songid, 1);
+        localStorage.setItem("playlist", JSON.stringify(playlist));
+        renderplaylist()
     }
 
     async function jmp(songid) {
@@ -248,18 +446,23 @@
         playNextSong();
     }
 
+
+
     async function renderplaylist() {
                  document.getElementById("playlist").innerHTML = ""
         let p = 0
         for (const i of playlist) {
-            let v = `<div class="playlisti">
-                <img src="${atob(i[2])}" width="100px">  
-                <h4>${atob(i[0])}</h4>
-                <h6>${atob(i[4])}</h6>
-                <p>${atob(i[3])}</p>
-                <button onclick="jmp('${p}')">Play</button>
-                <button onclick="delsong('${p}')">Delete from playlist</button>
-                <hr>
+            let v = `<div class="playlisti" onclick="jmp('${p}')">
+                <div class="crop-container">
+                    <img src="https://i.ytimg.com/vi/${atob(i[1])}/hq720.jpg" alt="Image">
+                    <img src="play.svg" class="playbtn">
+                </div> 
+                <div class="listi">
+                    <h4>${atob(i[0])}</h4>
+                    <h6>${atob(i[3])}</h6>
+                </div>
+
+                <button class="removefromplaylist" onclick="delsong('${p}')"><i class="material-icons">delete</i></button>
             </div>`
             document.getElementById("playlist").innerHTML += v
             p += 1
@@ -279,49 +482,39 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const r = await fetch(`https://${getRandomServer()}.glitch.me/proxy?query=${query}`)
-        const vids = await r.json()
-
-        document.getElementById("searchcontent").innerHTML = `<img src="3838.jpg" width="100px" height="100px">`
-
-        let results = 0
+        const vids = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/search?query=${query}`, "json")
+        console.log(vids)
+        document.getElementById("searchcontent").innerHTML = ``
 
         document.getElementById("searchcontent").innerHTML += `Results for "${query}"`
         for (const i of vids) {
-            if (i["videoRenderer"] ) {
-                try {
-                    console.log(i)
-                const mainshit = i["videoRenderer"]
-                const songname = mainshit.title.runs[0].text
-                const artist = mainshit.ownerText.runs[0].text
-                const cover = mainshit.thumbnail.thumbnails[0].url
-                const ytid = mainshit.videoId
-                const len = mainshit.lengthText.simpleText
-
-
-                const vi = `
-                <div class="songsearch">
-                    <h3>${songname}</h3>
-                    <h6>${artist}</h6>
-                    <img src="${cover}">
-                    <button onclick="addtoplaylist('${btoa(songname)}', '${btoa(ytid)}', '${btoa(cover)}', '${btoa(len)}', '${btoa(artist)}')">Add to Playlist</button>
-                    <hr>
+            try {
+                const vi = `<div class="playlisti" onclick="preview('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')">
+                <div class="crop-container">
+                    <img src="https://i.ytimg.com/vi/${i[2]}/hq720.jpg" alt="Image">
+                    <img src="play.svg" class="playbtn">
+                </div> 
+                <div class="listi">
+                    <h4>${i[0]}</h4>
+                    <h6>${i[1]}</h6>
                 </div>
-                `
+
+                <button class="addtoplaylist" onclick="addtoplaylist('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')"><i class="material-icons">add</i></button>
+            </div>`
 
                 document.getElementById("searchcontent").innerHTML += vi
-                results += 1
-                } catch (err) {
-                    console.log(err)
-                }
 
-
-
+            } catch(err) {
+                console.log(err)
             }
+
+            
         }
-        if (results < 1) {
+
+        if (vids.len == 0) {
             document.getElementById("searchcontent").innerHTML += "<h1>no results found you fucking bitch</h1>"
         }
+
     }
 
 </script>
