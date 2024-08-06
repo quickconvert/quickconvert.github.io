@@ -244,9 +244,11 @@
     }
 
     let servers = [
-        "fyyyyyyyyyyyy",
+        "f890eashf08sh80fs",
+        "80r39fdgfa8",
+        "spot53451413",
     ]
-    //https://glitch.com/edit/#!/remix/i0fa9780fas0f
+    //https://glitch.com/edit/#!/remix/f890eashf08sh80fs
     function getRandomServer() {
         const randomIndex = Math.floor(Math.random() * servers.length);
         return servers[randomIndex];
@@ -363,8 +365,9 @@
         });
 
         async function playNextSong() {
-            document.getElementById("audioSource").src = "";
             audioElement.pause();
+            document.getElementById("audioSource").src = "";
+            audioElement.load()
             const song = playlist[playing];
             if (!song) {
                 document.getElementById("songname").textContent = "";
@@ -420,6 +423,7 @@
     async function preview(songname, youtubeid, length, artist) {
         audioElement.pause();
         document.getElementById("audioSource").src = "";
+        audioElement.load()
         document.getElementById("songname").textContent = atob(songname);
         document.getElementById("rappername").textContent = atob(artist);
         document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(youtubeid)}/hq720.jpg`;
