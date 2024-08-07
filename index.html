@@ -266,11 +266,9 @@
 
 
     let servers = [
-        "f890eashf08sh80fs",
-        "80r39fdgfa8",
-        "spot53451413",
+        "spotifyweb",
     ]
-    //https://glitch.com/edit/#!/remix/f890eashf08sh80fs
+
     function getRandomServer() {
         const randomIndex = Math.floor(Math.random() * servers.length);
         return servers[randomIndex];
@@ -279,76 +277,9 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    function openDatabase() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open('audioCacheDB', 1);
-
-            request.onupgradeneeded = event => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains('audioCache')) {
-                    db.createObjectStore('audioCache', { keyPath: 'id' });
-                }
-            };
-
-            request.onsuccess = event => {
-                resolve(event.target.result);
-            };
-
-            request.onerror = event => {
-                reject(event.target.error);
-            };
-        });
-    }
-
-    function storeAudioInDB(YoutubeID, mp3Blob) {
-        return openDatabase().then(db => {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['audioCache'], 'readwrite');
-                const store = transaction.objectStore('audioCache');
-                const request = store.put({ id: YoutubeID, audioBlob: mp3Blob });
-
-                request.onsuccess = () => {
-                    resolve();
-                };
-
-                request.onerror = event => {
-                    reject(event.target.error);
-                };
-            });
-        });
-    }
-
-    function getAudioFromDB(YoutubeID) {
-        return openDatabase().then(db => {
-            return new Promise((resolve, reject) => {
-                const transaction = db.transaction(['audioCache'], 'readonly');
-                const store = transaction.objectStore('audioCache');
-                const request = store.get(YoutubeID);
-
-                request.onsuccess = event => {
-                    resolve(event.target.result);
-                };
-
-                request.onerror = event => {
-                    reject(event.target.error);
-                };
-            });
-        });
-    }
-
     async function downloadaudio(YoutubeID, name) {
-        const cachedAudio = await getAudioFromDB(YoutubeID);
-        
-        if (cachedAudio) {
-            const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
-            return blobUrl;
-        } else {
-            const arrayBuffer = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "arraybuffer", name);
-            const mp3Blob = new Blob([arrayBuffer], { type: 'audio/mp3' });
-            await storeAudioInDB(YoutubeID, mp3Blob);
-            const blobUrl = URL.createObjectURL(mp3Blob);
-            return blobUrl;
-        }
+        const url = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "text", name);
+        return url;
     }
 
 
@@ -477,8 +408,8 @@
                  document.getElementById("playlist").innerHTML = ""
         let p = 0
         for (const i of playlist) {
-            let v = `<div class="playlisti" onclick="jmp('${p}')">
-                <div class="crop-container">
+            let v = `<div class="playlisti">
+                <div class="crop-container" onclick="jmp('${p}')">
                     <img src="https://i.ytimg.com/vi/${atob(i[1])}/hq720.jpg" alt="Image">
                     <img src="play.svg" class="playbtn">
                 </div> 
@@ -514,8 +445,8 @@
         document.getElementById("searchcontent").innerHTML += `Results for "${query}"`
         for (const i of vids) {
             try {
-                const vi = `<div class="playlisti" onclick="preview('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')">
-                <div class="crop-container">
+                const vi = `<div class="playlisti">
+                <div class="crop-container" onclick="preview('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')">
                     <img src="https://i.ytimg.com/vi/${i[2]}/hq720.jpg" alt="Image">
                     <img src="play.svg" class="playbtn">
                 </div> 
