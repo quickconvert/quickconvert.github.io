@@ -246,7 +246,8 @@
                     loading(false);
                     resolve(xhr.response);
                 } else {
-                    reject(`Failed to fetch: ${xhr.status}`);
+                    loading(false);
+                    resolve(false);
                 }
             };
 
@@ -264,22 +265,100 @@
         });
     }
 
+    const server = "spotifyweb"
 
-    let servers = [
-        "spotifyweb",
-    ]
-
-    function getRandomServer() {
-        const randomIndex = Math.floor(Math.random() * servers.length);
-        return servers[randomIndex];
-    }
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    function openDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open('audioCacheDB', 1);
+
+            request.onupgradeneeded = event => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('audioCache')) {
+                    db.createObjectStore('audioCache', { keyPath: 'id' });
+                }
+            };
+
+            request.onsuccess = event => {
+                resolve(event.target.result);
+            };
+
+            request.onerror = event => {
+                reject(event.target.error);
+            };
+        });
+    }
+
+    function storeAudioInDB(YoutubeID, mp3Blob) {
+        return openDatabase().then(db => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['audioCache'], 'readwrite');
+                const store = transaction.objectStore('audioCache');
+                const request = store.put({ id: YoutubeID, audioBlob: mp3Blob });
+
+                request.onsuccess = () => {
+                    resolve();
+                };
+
+                request.onerror = event => {
+                    reject(event.target.error);
+                };
+            });
+        });
+    }
+
+    function getAudioFromDB(YoutubeID) {
+        return openDatabase().then(db => {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(['audioCache'], 'readonly');
+                const store = transaction.objectStore('audioCache');
+                const request = store.get(YoutubeID);
+
+                request.onsuccess = event => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = event => {
+                    reject(event.target.error);
+                };
+            });
+        });
+    }
+
     async function downloadaudio(YoutubeID, name) {
-        const url = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/stream?ytid=${YoutubeID}`, "text", name);
-        return url;
+        const cachedAudio = await getAudioFromDB(YoutubeID);
+        
+        if (cachedAudio) {
+            const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
+            return blobUrl;
+        } else {
+            const incloud = await fetchWithProgress(`https://cdn.glitch.global/dcc9b815-043a-452e-9859-e1e705677ea0/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
+            if (incloud) {
+                const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
+                await storeAudioInDB(YoutubeID, mp3Blob);
+                const blobUrl = URL.createObjectURL(mp3Blob);
+                return blobUrl;
+            } else {
+                const added = await fetchWithProgress(`https://${server}.glitch.me/stream?ytid=${YoutubeID}`, "text", `Adding ${name} to the servers`);
+                console.log(added)
+                if (added == "toobig") {
+                    alert("Audio was too large to add to our servers")
+                    return false
+                }
+                const incloud = await fetchWithProgress(`https://cdn.glitch.global/dcc9b815-043a-452e-9859-e1e705677ea0/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
+                const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
+                await storeAudioInDB(YoutubeID, mp3Blob);
+                const blobUrl = URL.createObjectURL(mp3Blob);
+                return blobUrl;
+            }
+
+
+            
+
+        }
     }
 
 
@@ -293,17 +372,6 @@
     let playing = 0
 
 
-    async function pingallservers() {
-        while (true) {
-            for (const i of servers) {
-            fetch("https://" + i + ".glitch.me/lol")
-            }
-            await delay(250000)
-        }
-        
-
-    }
-    pingallservers()
 
 
         const audioElement = document.getElementById("audioPlayer");
@@ -334,6 +402,12 @@
 
             
             const audiourl = await downloadaudio(atob(song[1]), atob(song[0]))
+            if (!audiourl) {
+                document.getElementById("songname").textContent = "";
+                document.getElementById("rappername").textContent = "";
+                document.getElementById("fgersi0sefdjhi").src = "";
+                return
+            }
             document.getElementById("audioSource").src = audiourl;
 
             audioElement.load();
@@ -379,7 +453,7 @@
         document.getElementById("songname").textContent = atob(songname);
         document.getElementById("rappername").textContent = atob(artist);
         document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(youtubeid)}/hq720.jpg`;
-        const audiourl = await downloadaudio(atob(youtubeid))
+        const audiourl = await downloadaudio(atob(youtubeid), atob(songname))
         document.getElementById("audioSource").src = audiourl;
         audioElement.load();
         audioElement.play();
@@ -438,7 +512,7 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const vids = await fetchWithProgress(`https://${getRandomServer()}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
+        const vids = await fetchWithProgress(`https://${server}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
         console.log(vids)
         document.getElementById("searchcontent").innerHTML = ``
 
