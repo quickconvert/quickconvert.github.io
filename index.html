@@ -84,6 +84,25 @@
             background-color: #1f1f1f;
         }
 
+        .entireplaylist {
+            display: flex;
+            gap: 10px;
+            border-radius: 5px;
+            padding: 10px;
+            width: 45%;
+            align-items: center;
+        }
+
+        .entireplaylist:hover {
+            background-color: #1f1f1f;
+        }
+
+        #allplaylists {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
         .playbtn {
             position: absolute;
             width: 20px !important;
@@ -110,6 +129,7 @@
             transform: translate(-50%, -50%);
             justify-content: center;
         }
+
 
         .crop-container {
             width: 50px;
@@ -145,6 +165,11 @@
             padding: 0;
             font: inherit;
             cursor: pointer;
+            color: #ffffff;
+        }
+
+        button:hover {
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
         }
 
         .material-icons {
@@ -158,6 +183,43 @@
         #rappername {
             color: #b3b3b3;
         }
+
+        #popup {
+            position: fixed;
+            z-index: 500;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #000000;
+            border-radius: 5px;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .close {
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+
+        select {
+            background-color: #1f1f1f;
+            color: #fff;
+            border-radius: 4px;
+            padding: 10px;
+            width: 100%;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: left;
+        }
+        #createplaylist {
+            display: flex;
+        }
     </style>
 </head>
     <div id="leftcont">
@@ -166,12 +228,46 @@
     </div>
     <div id="main">
         <div id="home">
+            <button style="display: none;" id="backtoplaylists">
+                <i class="material-icons">arrow_back_ios</i>
+                <span>Back to playlists</span>
+            </button>
+
+            <div id="allplaylists">
+
+            </div>
+            
             <div id="playlist">
             </div>
-            <p>Spotfy Modded 2024</p>
+            <button id="createplaylist" style="display: flex;">
+                <i class="material-icons">add</i>
+                <span>Create playlist</span>
+            </button>
+            <button id="importplaylist" style="display: flex;">
+                <i class="material-icons">add</i>
+                <span>Import playlist from Spotify</span>
+            </button>
+            <p id="storing"></p>
+            <script>
+                function fetchData() {
+                    fetch("https://api.codetabs.com/v1/proxy/?quest=http://147.185.221.21:59590/stored")
+                        .then(response => response.text())
+                        .then(data => {
+                            document.getElementById('storing').textContent = data;
+                        })
+                        .catch(error => {
+                            console.error('Error fetching the data:', error);
+                        });
+                }
+            
+                fetchData();
+                setInterval(fetchData, 300000);
+            </script>
         </div>
         <div id="searchcontent" style="display: none;">
         </div>
+        <br>
+        <br>
     </div>
 
     <div id="player">
@@ -195,6 +291,20 @@
         <p id="progt">0% 0/1000</p>
     </div>
 
+    <div id="popup" style="display: none;">
+        <div>
+            <button id="cancelchoose"><i class="material-icons">cancel</i></button>
+            <br>
+            <h2>Select Playlist</h2>
+            <div>
+                <label for="playlist">Choose a playlist:</label>
+                <select id="chooseplaylis" name="playlist">
+                    <option value="choose">Choose.</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
 <script>
     let loadingsomething = false
     function loading(isloading, onnumber, maxnumber, name) {
@@ -216,6 +326,108 @@
             }
 
         }
+    }
+
+    function removequotes(text) {
+        return text.replace(/[`'"]/g, '');
+    }
+
+    function chooseplaylist() {
+        return new Promise((resolve, reject) => {
+            const dropdown = document.getElementById("chooseplaylis");
+            dropdown.innerHTML = `<option value="choose">Choose.</option>`;
+
+            for (let i = 0; i < localStorage.length; i++) {
+                const playlistname = localStorage.key(i);
+                if (playlistname === "lastplayed") {
+                    continue;
+                }
+                dropdown.innerHTML += `<option value="${playlistname}">${playlistname}</option>`;
+            }
+
+            document.getElementById("popup").style.display = "";
+
+            function handleChange() {
+                const selectedValue = dropdown.value;
+                cleanup();
+                resolve(selectedValue !== "choose" ? selectedValue : false);
+            }
+
+            function handleCancel() {
+                cleanup();
+                resolve(false);
+            }
+
+            function cleanup() {
+                dropdown.removeEventListener('change', handleChange);
+                document.getElementById("cancelchoose").removeEventListener('click', handleCancel);
+                document.getElementById("popup").style.display = "none";
+            }
+
+            dropdown.addEventListener('change', handleChange);
+            document.getElementById("cancelchoose").addEventListener('click', handleCancel);
+        });
+    }
+
+
+    document.getElementById("createplaylist").onclick = async function() {
+        const plname = removequotes(prompt("Enter a name for your playlist: "))
+        
+        if (!plname) {
+            return
+        }
+        if (localStorage.getItem(plname)) {
+            return alert("Already exists!")
+        }
+        localStorage.setItem(plname, `[]`)
+        renderallplaylists()
+    }
+
+    document.getElementById("importplaylist").onclick = async function() {
+      const sharelink = prompt("Enter a spotify share link for a playlist: ")
+        if (!sharelink) {
+            return
+        }
+        const playlistid = sharelink.split("playlist/")[1].split("?si")[0]
+        const eventSource = new EventSource(`https://spotifyplaylisttoyt.glitch.me/?playlist=${playlistid}`);
+        loading(true, undefined, undefined, "Importing...")
+        let totalsongs = 0
+        let loaded = 0
+        let playlistname = ""
+
+        let pendingplaylist = []
+
+        eventSource.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            if (data.playlist) {
+                playlistname = removequotes(data.playlist)
+                loading(true, undefined, undefined, "Importing... " + playlistname)
+            } else {
+                if (data.size) {
+                    totalsongs = data.size
+                    loading(true, undefined, undefined, "Importing... " + totalsongs + " Tracks")
+                } else {
+                    if (data.song) {
+                        loaded += 1
+                        loading(true, loaded, totalsongs, "Importing... " + data.song[0])
+                        pendingplaylist.push([removequotes(data.song[0]), data.song[2], data.song[3], removequotes(data.song[1])])
+                        
+                    } else {
+                        if (data.end) {
+                            eventSource.close();
+                            loading(false)
+                            localStorage.setItem(playlistname, JSON.stringify(pendingplaylist))
+                            renderallplaylists()
+                        }
+                    }
+                }
+
+            }
+     
+        };
+
+
+        
     }
 
     let currentXhr = null;
@@ -347,10 +559,15 @@
                     return false
                 }
                 const incloud = await fetchWithProgress(`https://cdn.glitch.global/0c6919c5-7f70-4443-9eaa-88a36ea56378/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
-                const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
-                await storeAudioInDB(YoutubeID, mp3Blob);
-                const blobUrl = URL.createObjectURL(mp3Blob);
-                return blobUrl;
+                if (incloud) {
+                    const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
+                    await storeAudioInDB(YoutubeID, mp3Blob);
+                    const blobUrl = URL.createObjectURL(mp3Blob);
+                    return blobUrl;
+                } else {
+                    return false
+                }
+
             }
 
 
@@ -360,18 +577,16 @@
     }
 
 
-    let playlist = localStorage.getItem("playlist")
-    if (!playlist) {
-        playlist = []
-    } else {
-        playlist = JSON.parse(playlist)
+    let openplaylist = ""
+    let playing = 0
+    const lastplayed = localStorage.getItem("lastplayed")
+    if (lastplayed) {
+        openplaylist = localStorage.getItem("lastplayed")
     }
 
-    let playing = 0
 
-
-
-
+    fetch("https://spotifyplaylisttoyt.glitch.me/")
+    
         const audioElement = document.getElementById("audioPlayer");
 
         audioElement.addEventListener('ended', () => {
@@ -383,10 +598,13 @@
         });
 
         async function playNextSong() {
+            let pldata = JSON.parse(localStorage.getItem(openplaylist))
+            localStorage.setItem("lastplayed", openplaylist)
+
             audioElement.pause();
             document.getElementById("audioSource").src = "";
             audioElement.load()
-            const song = playlist[playing];
+            const song = pldata[playing];
             if (!song) {
                 document.getElementById("songname").textContent = "";
                 document.getElementById("rappername").textContent = "";
@@ -394,12 +612,12 @@
                 return
             }
 
-            document.getElementById("songname").textContent = atob(song[0]);
-            document.getElementById("rappername").textContent = atob(song[3]);
-            document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(song[1])}/hq720.jpg`;
+            document.getElementById("songname").textContent = song[0];
+            document.getElementById("rappername").textContent = song[3];
+            document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${song[1]}/hq720.jpg`;
 
             
-            const audiourl = await downloadaudio(atob(song[1]), atob(song[0]))
+            const audiourl = await downloadaudio(song[1], song[0])
             if (!audiourl) {
                 document.getElementById("songname").textContent = "";
                 document.getElementById("rappername").textContent = "";
@@ -416,16 +634,20 @@
     
 
     function previousSong() {
+        const pldata = JSON.parse(localStorage.getItem(openplaylist))
+
         playing -= 1;
         if (playing < 0) {
-            playing = playlist.length - 1;
+            playing = pldata.length - 1;
         }
         playNextSong();
     }
 
     function nextSong() {
+        const pldata = JSON.parse(localStorage.getItem(openplaylist))
+
         playing += 1;
-        if (playing >= playlist.length) {
+        if (playing >= pldata.length) {
             playing = 0;
         }
         playNextSong();
@@ -433,14 +655,23 @@
 
 
     async function addtoplaylist(songname, youtubeid, length, artist) {
-        const isAlreadyInPlaylist = playlist.some(item => item[1] === youtubeid);
+
+        const playlistname = await chooseplaylist()
+
+
+        let pldata = JSON.parse(localStorage.getItem(playlistname))
+
+        const isAlreadyInPlaylist = pldata.some(item => item[1] === youtubeid);
 
         if (!isAlreadyInPlaylist) {
-            playlist.push([songname, youtubeid, length, artist]);
-            localStorage.setItem("playlist", JSON.stringify(playlist));
-            alert(`Song ${atob(songname)} added to the playlist.`);
+            pldata.push([songname, youtubeid, length, artist]);
+            localStorage.setItem(playlistname, JSON.stringify(pldata));
+            if (openplaylist == playlistname) {
+                renderplaylist(openplaylist)
+            }
+   
         } else {
-            alert(`Song ${atob(songname)} is already in the playlist.`);
+            alert(`Song ${songname} is already in ${playlistname}`);
         }
     }
 
@@ -448,86 +679,149 @@
         audioElement.pause();
         document.getElementById("audioSource").src = "";
         audioElement.load()
-        document.getElementById("songname").textContent = atob(songname);
-        document.getElementById("rappername").textContent = atob(artist);
-        document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${atob(youtubeid)}/hq720.jpg`;
-        const audiourl = await downloadaudio(atob(youtubeid), atob(songname))
+        document.getElementById("songname").textContent = songname;
+        document.getElementById("rappername").textContent = artist;
+        document.getElementById("fgersi0sefdjhi").src = `https://i.ytimg.com/vi/${youtubeid}/hq720.jpg`;
+        const audiourl = await downloadaudio(youtubeid, songname)
         document.getElementById("audioSource").src = audiourl;
         audioElement.load();
         audioElement.play();
     }
 
-    async function delsong(songid) {
-        playlist.splice(songid, 1);
-        localStorage.setItem("playlist", JSON.stringify(playlist));
-        renderplaylist()
+    async function openlist(bt) {
+        const playlistname = localStorage.key(bt)
+        renderplaylist(playlistname)
+        document.getElementById("backtoplaylists").style.display = "flex"
     }
 
-    async function jmp(songid) {
+    document.getElementById("backtoplaylists").onclick = async function () {
+        document.getElementById("backtoplaylists").style.display = "none"
+        renderallplaylists()
+    }
+
+    async function delsong(songid, dsad) {
+        const playlistname = dsad
+        let pldata = JSON.parse(localStorage.getItem(playlistname))
+        pldata.splice(songid, 1);
+        localStorage.setItem(playlistname, JSON.stringify(pldata));
+        renderplaylist(playlistname)
+    }
+
+    async function jmp(songid, wantedplaylist) {
+        openplaylist = wantedplaylist
+        const pldata = JSON.parse(localStorage.getItem(openplaylist))
+
         playing = parseInt(songid);
-        if (playing >= playlist.length) {
+        if (playing >= pldata.length) {
             playing = 0;
         }
         if (playing < 0) {
-            playing = playlist.length - 1;
+            playing = pldata.length - 1;
         }
         playNextSong();
     }
 
+    async function renderallplaylists() {
+        document.getElementById("playlist").innerHTML = ""
+        document.getElementById("allplaylists").innerHTML = ""
+        document.getElementById("createplaylist").style.display = "flex"
+        document.getElementById("importplaylist").style.display = "flex"
 
 
-    async function renderplaylist() {
-                 document.getElementById("playlist").innerHTML = ""
+        let v = ""
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const playlistname = localStorage.key(i);
+            if (playlistname == "lastplayed") {
+                continue
+            }
+            const value = JSON.parse(localStorage.getItem(playlistname))
+            let thumbnail = ""
+            if (value[0]) {
+                thumbnail = `https://i.ytimg.com/vi/${value[0][1]}/hq720.jpg`
+            }
+
+
+            v += `<div class="entireplaylist" onclick="openlist(${i})">
+                    <div class="crop-container">
+                        <img src="${thumbnail}" alt="Image">
+                    </div> 
+                    <h4>${playlistname}</h4>
+                </div>`
+
+            
+
+        }
+        document.getElementById("allplaylists").innerHTML = v
+    }
+
+   renderallplaylists()
+
+
+    async function renderplaylist(playlistname) {
+        const pldata = JSON.parse(localStorage.getItem(playlistname))
+        document.getElementById("playlist").innerHTML = ""
+        document.getElementById("allplaylists").innerHTML = ""
+        document.getElementById("createplaylist").style.display = "none"
+        document.getElementById("importplaylist").style.display = "none"
+
         let p = 0
-        for (const i of playlist) {
-            let v = `<div class="playlisti">
-                <div class="crop-container" onclick="jmp('${p}')">
-                    <img src="https://i.ytimg.com/vi/${atob(i[1])}/hq720.jpg" alt="Image">
-                    <img src="play.svg" class="playbtn">
-                </div> 
-                <div class="listi">
-                    <h4>${atob(i[0])}</h4>
-                    <h6>${atob(i[3])}</h6>
-                </div>
+        let v = ""
 
-                <button class="removefromplaylist" onclick="delsong('${p}')"><i class="material-icons">delete</i></button>
-            </div>`
-            document.getElementById("playlist").innerHTML += v
-            p += 1
-         }
-    }
-    renderplaylist()
-    document.getElementById("homeb").onclick = async function() {
-        document.getElementById("home").style.display = ""
-         document.getElementById("searchcontent").style.display = "none"
-         renderplaylist()
-    }
-
-
-    document.getElementById("searchb").onclick = async function() {
-                document.getElementById("home").style.display = "none"
-     document.getElementById("searchcontent").style.display = ""
-
-        const query = prompt("Enter a search: ")
-        document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const vids = await fetchWithProgress(`https://api.codetabs.com/v1/proxy/?quest=http://147.185.221.21:59590/search?query=${query}`, "json", `Search "${query}"`)
-        console.log(vids)
-        document.getElementById("searchcontent").innerHTML = ``
-
-        document.getElementById("searchcontent").innerHTML += `Results for "${query}"`
-        for (const i of vids) {
-            try {
-                const vi = `<div class="playlisti">
-                <div class="crop-container" onclick="preview('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')">
-                    <img src="https://i.ytimg.com/vi/${i[2]}/hq720.jpg" alt="Image">
+        for (const i of pldata) {
+            v += `<div class="playlisti">
+                <div class="crop-container" onclick="jmp('${p}', '${playlistname}')">
+                    <img src="https://i.ytimg.com/vi/${i[1]}/hq720.jpg" alt="Image">
                     <img src="play.svg" class="playbtn">
                 </div> 
                 <div class="listi">
                     <h4>${i[0]}</h4>
-                    <h6>${i[1]}</h6>
+                    <h6>${i[3]}</h6>
                 </div>
 
-                <button class="addtoplaylist" onclick="addtoplaylist('${btoa(i[0])}', '${btoa(i[2])}', '${btoa(i[3])}' , '${btoa(i[1])}')"><i class="material-icons">add</i></button>
+                <button class="removefromplaylist" onclick="delsong('${p}', '${playlistname}')"><i class="material-icons">delete</i></button>
+            </div>`
+            p += 1
+         }
+         document.getElementById("playlist").innerHTML = v
+    }
+
+    document.getElementById("homeb").onclick = async function() {
+        document.getElementById("home").style.display = ""
+        document.getElementById("searchcontent").style.display = "none"
+    }
+
+
+    document.getElementById("searchb").onclick = async function() {
+        const query = prompt("Enter a search: ")
+        if (!query) {
+            return
+        }
+
+                document.getElementById("home").style.display = "none"
+     document.getElementById("searchcontent").style.display = ""
+
+
+        document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
+        const vids = await fetchWithProgress(`https://api.codetabs.com/v1/proxy/?quest=http://147.185.221.21:59590/search?query=${btoa(query)}`, "json", `Search "${query}"`)
+        console.log(vids)
+        document.getElementById("searchcontent").innerHTML = ``
+
+        document.getElementById("searchcontent").innerHTML += `Results for "${query}"`
+        
+        for (const i of vids) {
+            try {
+                const vi = `<div class="playlisti">
+                <div class="crop-container" onclick="preview('${removequotes(i[0])}', '${i[2]}', '${i[3]}' , '${removequotes(i[1])}')">
+                    <img src="https://i.ytimg.com/vi/${i[2]}/hq720.jpg" alt="Image">
+                    <img src="play.svg" class="playbtn">
+                </div> 
+                <div class="listi">
+                    <h4>${removequotes(i[0])}</h4>
+                    <h6>${removequotes(i[1])}</h6>
+                </div>
+
+                <button class="addtoplaylist" onclick="addtoplaylist('${removequotes(i[0])}', '${i[2]}', '${i[3]}' , '${removequotes(i[1])}')"><i class="material-icons">add</i></button>
             </div>`
 
                 document.getElementById("searchcontent").innerHTML += vi
