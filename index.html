@@ -265,7 +265,7 @@
         });
     }
 
-    const server = "spotifyweb"
+    fetch(`http://147.185.221.21:59590/stored`)
 
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -335,20 +335,20 @@
             const blobUrl = URL.createObjectURL(cachedAudio.audioBlob);
             return blobUrl;
         } else {
-            const incloud = await fetchWithProgress(`https://cdn.glitch.global/dcc9b815-043a-452e-9859-e1e705677ea0/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
+            const incloud = await fetchWithProgress(`https://cdn.glitch.global/0c6919c5-7f70-4443-9eaa-88a36ea56378/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
             if (incloud) {
                 const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
                 await storeAudioInDB(YoutubeID, mp3Blob);
                 const blobUrl = URL.createObjectURL(mp3Blob);
                 return blobUrl;
             } else {
-                const added = await fetchWithProgress(`https://${server}.glitch.me/stream?ytid=${YoutubeID}`, "text", `Adding ${name} to the servers`);
+                const added = await fetchWithProgress(`http://147.185.221.21:59590/stream?ytid=${YoutubeID}`, "text", `Adding ${name} to the servers`);
                 console.log(added)
                 if (added == "toobig") {
                     alert("Audio was too large to add to our servers")
                     return false
                 }
-                const incloud = await fetchWithProgress(`https://cdn.glitch.global/dcc9b815-043a-452e-9859-e1e705677ea0/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
+                const incloud = await fetchWithProgress(`https://cdn.glitch.global/0c6919c5-7f70-4443-9eaa-88a36ea56378/${YoutubeID}.mp3`, "arraybuffer", `Adding ${name} to your device`)
                 const mp3Blob = new Blob([incloud], { type: 'audio/mp3' });
                 await storeAudioInDB(YoutubeID, mp3Blob);
                 const blobUrl = URL.createObjectURL(mp3Blob);
@@ -512,7 +512,7 @@
 
         const query = prompt("Enter a search: ")
         document.getElementById("searchcontent").innerHTML = `<p>Loading results for "${query}"</p>`
-        const vids = await fetchWithProgress(`https://${server}.glitch.me/search?query=${query}`, "json", `Search "${query}"`)
+        const vids = await fetchWithProgress(`http://147.185.221.21:59590/search?query=${query}`, "json", `Search "${query}"`)
         console.log(vids)
         document.getElementById("searchcontent").innerHTML = ``
 
